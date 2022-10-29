@@ -1,0 +1,14 @@
+{
+  "name": "prime-library",
+  "version": "1.12.1",
+  "website": "www.rptools.net",
+  "gitUrl": "",
+  "authors": ["reznoov"],
+  "license": "GPL 3.0",
+  "namespace": "Prime",
+  "description": "My test addon",
+  "shortDescription": "Test Addon",
+  "allowsUriAccess": true,
+  "licenseFile": "",
+  "readMeFile": ""
+}
