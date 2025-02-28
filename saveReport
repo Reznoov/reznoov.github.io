@@ -1,0 +1,55 @@
+Sub saveReport()
+    Dim destPath As String
+    Dim destWb As Workbook
+    Dim lastRow As Long
+    
+    Dim rngPart1 As Range, rngPart2 As Range, rngUnion As Range
+    
+    ' 1) Construct the full path. Example: "\\MyServer\MyShare\SomeFolder\{ActiveSheetName}_report.xlsx"
+    '    Adjust the server or folder name as needed for your actual environment.
+    destPath = "\\MyServer\MyShare\SomeFolder\" & ActiveSheet.Name & "_report.xlsx"
+    
+    ' 2) Check if file exists. If not, stop and inform user.
+    If Dir(destPath) = "" Then
+        MsgBox "Cannot find the destination file: " & vbCrLf & destPath & vbCrLf & _
+               "Script will now stop.", vbExclamation
+        Exit Sub
+    End If
+    
+    ' 3) Open the destination workbook (which has only 1 sheet).
+    Set destWb = Workbooks.Open(destPath)
+    
+    ' 4) Clear old data in columns I:R rows 3 to 100 in the destination (just to be safe).
+    '    This ensures we remove any pre-existing data in that area (even though we won't paste over R).
+    destWb.Sheets(1).Range("I3:R100").ClearContents
+    
+    ' 5) Find the last used row in column I of the active sheet (the source).
+    lastRow = ActiveSheet.Cells(Rows.Count, "I").End(xlUp).Row
+    
+    ' 6) If lastRow < 3, there's no data to copy. We can handle or just exit quietly.
+    If lastRow < 3 Then
+        MsgBox "No data to copy in " & ActiveSheet.Name & ".", vbInformation
+        Exit Sub
+    End If
+    
+    ' 7) Define the ranges to copy: columns I through Q, plus column S, from row 3 to lastRow.
+    '    (We exclude column R by making two ranges and uniting them.)
+    Set rngPart1 = ActiveSheet.Range("I3:Q" & lastRow)  ' This covers I through Q
+    Set rngPart2 = ActiveSheet.Range("S3:S" & lastRow)  ' This covers just column S
+    Set rngUnion = Union(rngPart1, rngPart2)
+    
+    ' 8) Copy only values to the destination.
+    '    We'll paste starting at I3 in the destination workbook.
+    rngUnion.Copy
+    With destWb.Sheets(1).Range("I3")
+        .PasteSpecial Paste:=xlPasteValues
+    End With
+    
+    ' Cleanup
+    Application.CutCopyMode = False
+    
+    ' 9) Do not save or close the destination workbook; just leave it open.
+    '    Inform the user that we're done.
+    MsgBox "Data replaced in " & destWb.Name & " successfully!" & vbCrLf & _
+           "Destination workbook remains open.", vbInformation
+End Sub
