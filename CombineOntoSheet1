@@ -1,0 +1,44 @@
+Sub CombineOntoSheet1()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim wsDest As Worksheet
+    Dim lastRowSource As Long, lastRowDest As Long
+    Dim rngCopy As Range
+    
+    ' Work on the *active* workbook,
+    ' even if the macro is located in a different workbook.
+    Set wb = ActiveWorkbook
+    
+    ' The FIRST worksheet by index (not necessarily named "Sheet1").
+    Set wsDest = wb.Sheets(1)
+    
+    ' Loop through each worksheet in the active workbook
+    For Each ws In wb.Sheets
+        
+        ' Skip the first worksheet (the one we're consolidating into)
+        If ws.Index <> wsDest.Index Then
+            
+            ' Determine the last row used in column A of the current sheet
+            lastRowSource = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+            
+            ' Only proceed if there's data below row 1
+            If lastRowSource >= 2 Then
+                
+                ' Define the range to copy: A2 through G(lastRowSource)
+                Set rngCopy = ws.Range("A2:G" & lastRowSource)
+                
+                ' Find the next empty row in the destination sheet
+                lastRowDest = wsDest.Cells(wsDest.Rows.Count, "A").End(xlUp).Row + 1
+                
+                ' Copy directly to the destination, which preserves merges
+                rngCopy.Copy wsDest.Cells(lastRowDest, 1)
+            End If
+        End If
+    Next ws
+    
+    ' Optional: clear the clipboard
+    Application.CutCopyMode = False
+    
+    ' Inform the user when done
+    MsgBox "Data has been consolidated onto the first worksheet of " & wb.Name & ".", vbInformation
+End Sub
